@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Tactile Gaming System — D20 Result</title>
+  <style>
+    :root {
+      --bg-0: #05020a;
+      --bg-1: #0f0519;
+      --violet: #b32cff;
+      --violet-soft: #d993ff;
+      --cyan: #6feaff;
+      --gold: #ffd77d;
+      --danger: #ff5364;
+      --text: #f8f3ff;
+      --muted: #bfa9cf;
+      --panel: rgba(15, 5, 28, 0.72);
+      --panel-border: rgba(202, 104, 255, 0.52);
+      --glow: rgba(179, 44, 255, 0.62);
+      --corner: 38px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg-0);
+      color: var(--text);
+      font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+    }
+
+    body {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(118, 22, 176, 0.22), transparent 31%),
+        radial-gradient(circle at 50% 52%, rgba(51, 204, 255, 0.07), transparent 47%),
+        linear-gradient(145deg, #030106 0%, #0b0312 48%, #030106 100%);
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    body::before {
+      background:
+        repeating-conic-gradient(
+          from 0deg at 50% 50%,
+          rgba(176, 46, 255, 0.045) 0deg 1deg,
+          transparent 1deg 15deg
+        );
+      animation: slowTurn 90s linear infinite;
+    }
+
+    body::after {
+      background:
+        radial-gradient(circle at 15% 25%, rgba(164, 64, 255, 0.08), transparent 18%),
+        radial-gradient(circle at 83% 71%, rgba(64, 225, 255, 0.06), transparent 19%);
+      filter: blur(2px);
+    }
+
+    #motes {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.72;
+      z-index: -1;
+    }
+
+    .frame {
+      position: absolute;
+      inset: 3.2vh 3.2vw;
+      border: 1px solid rgba(218, 148, 255, 0.42);
+      border-radius: var(--corner);
+      box-shadow:
+        inset 0 0 48px rgba(177, 60, 255, 0.08),
+        0 0 38px rgba(130, 30, 200, 0.14);
+      pointer-events: none;
+    }
+
+    .frame::before,
+    .frame::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: calc(var(--corner) - 10px);
+      border: 1px solid rgba(114, 230, 255, 0.12);
+    }
+
+    .frame::after {
+      inset: 25px;
+      border-color: rgba(218, 148, 255, 0.08);
+    }
+
+    .corner {
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      opacity: 0.85;
+      filter: drop-shadow(0 0 12px rgba(186, 52, 255, 0.38));
+    }
+
+    .corner.tl { top: 1.7vh; left: 1.4vw; }
+    .corner.tr { top: 1.7vh; right: 1.4vw; transform: scaleX(-1); }
+    .corner.bl { bottom: 1.7vh; left: 1.4vw; transform: scaleY(-1); }
+    .corner.br { bottom: 1.7vh; right: 1.4vw; transform: scale(-1); }
+
+    .layout {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding:
+        max(18px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(18px, env(safe-area-inset-bottom))
+        max(18px, env(safe-area-inset-left));
+    }
+
+    .display {
+      position: relative;
+      width: min(1160px, 86vw);
+      height: min(760px, 82vh);
+      height: min(760px, 82dvh);
+      min-height: 0;
+      max-height: 760px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      align-items: center;
+      justify-items: center;
+      padding: clamp(20px, 3.4vmin, 50px) clamp(22px, 4.5vw, 72px);
+      border-radius: 48px;
+      background:
+        linear-gradient(180deg, rgba(34, 8, 51, 0.76), rgba(8, 3, 15, 0.82)),
+        radial-gradient(circle at 50% 48%, rgba(179, 44, 255, 0.10), transparent 50%);
+      border: 1px solid var(--panel-border);
+      box-shadow:
+        0 0 80px rgba(84, 9, 126, 0.30),
+        inset 0 0 40px rgba(148, 43, 218, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .display::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 38px;
+      border: 1px solid rgba(110, 234, 255, 0.11);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0;
+      letter-spacing: 0.46em;
+      text-transform: uppercase;
+      font-size: clamp(16px, 1.25vw, 24px);
+      font-weight: 700;
+      color: var(--violet-soft);
+      text-shadow: 0 0 14px rgba(179, 44, 255, 0.45);
+    }
+
+    .result-stage {
+      position: relative;
+      width: clamp(210px, 44vmin, 470px);
+      max-width: 72vw;
+      max-height: 52dvh;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      flex-shrink: 1;
+    }
+
+    .ring,
+    .ring::before,
+    .ring::after {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .ring {
+      border: 2px solid rgba(203, 107, 255, 0.56);
+      box-shadow:
+        0 0 26px var(--glow),
+        inset 0 0 34px rgba(144, 51, 196, 0.22);
+      animation: pulseRing 3.6s ease-in-out infinite;
+    }
+
+    .ring::before {
+      inset: 8.5%;
+      border: 1px solid rgba(111, 234, 255, 0.30);
+      background:
+        repeating-conic-gradient(
+          from 0deg,
+          rgba(191, 86, 255, 0.42) 0deg 2deg,
+          transparent 2deg 16deg
+        );
+      -webkit-mask: radial-gradient(circle, transparent 58%, #000 59% 63%, transparent 64%);
+      mask: radial-gradient(circle, transparent 58%, #000 59% 63%, transparent 64%);
+      animation: slowTurn 24s linear infinite reverse;
+    }
+
+    .ring::after {
+      inset: 19%;
+      border: 1px solid rgba(214, 149, 255, 0.26);
+      box-shadow: inset 0 0 30px rgba(173, 58, 246, 0.16);
+    }
+
+    .sigil {
+      position: absolute;
+      inset: 10%;
+      width: 80%;
+      height: 80%;
+      opacity: 0.28;
+      transform-box: fill-box;
+      transform-origin: center center;
+      animation: sigilSpin 18s linear infinite !important;
+      filter: drop-shadow(0 0 18px rgba(165, 45, 255, 0.48));
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+
+    .sigil-inner {
+      position: absolute;
+      inset: 22%;
+      width: 56%;
+      height: 56%;
+      opacity: 0.34;
+      transform-box: fill-box;
+      transform-origin: center center;
+      animation: sigilSpinReverse 11s linear infinite !important;
+      filter: drop-shadow(0 0 14px rgba(111, 234, 255, 0.42));
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+
+    .roll-value {
+      position: relative;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 0;
+      width: 78%;
+      height: 68%;
+      font-size: clamp(110px, 22vmin, 285px);
+      line-height: 0.78;
+      font-weight: 900;
+      letter-spacing: -0.08em;
+      transform: translateX(-0.035em);
+      color: var(--text);
+      text-shadow:
+        0 0 8px #fff,
+        0 0 22px var(--violet),
+        0 0 54px var(--glow);
+      transition:
+        color 240ms ease,
+        text-shadow 240ms ease,
+        transform 240ms ease,
+        opacity 220ms ease;
+      user-select: none;
+    }
+
+    .roll-value.two-digit {
+      font-size: clamp(92px, 18vmin, 235px);
+    }
+
+    .roll-value.rolling {
+      font-size: clamp(28px, 5.2vmin, 68px);
+      letter-spacing: 0.18em;
+      transform: none;
+      animation: shimmer 1.1s ease-in-out infinite;
+    }
+
+    .roll-value.error {
+      font-size: clamp(34px, 3vw, 58px);
+      max-width: 70%;
+      line-height: 1.1;
+      letter-spacing: 0.05em;
+      transform: none;
+      text-align: center;
+      color: #ffd1d6;
+      text-shadow: 0 0 24px rgba(255, 83, 100, 0.58);
+    }
+
+    .status {
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .status-title {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.30em;
+      color: var(--text);
+      font-size: clamp(18px, 1.45vw, 28px);
+      font-weight: 800;
+    }
+
+    .status-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(14px, 1vw, 19px);
+      letter-spacing: 0.08em;
+    }
+
+    .brand {
+      position: absolute;
+      left: 50%;
+      bottom: 4.5vh;
+      transform: translateX(-50%);
+      color: rgba(235, 216, 247, 0.62);
+      text-transform: uppercase;
+      letter-spacing: 0.42em;
+      font-size: clamp(11px, 0.8vw, 15px);
+      white-space: nowrap;
+    }
+
+    .nat20 .roll-value {
+      color: #fff4c8;
+      text-shadow:
+        0 0 9px #fff,
+        0 0 22px #ffd875,
+        0 0 65px rgba(255, 191, 71, 0.85);
+      animation: natTwenty 1.15s ease-out;
+    }
+
+    .nat20 .ring {
+      border-color: rgba(255, 217, 119, 0.78);
+      box-shadow:
+        0 0 42px rgba(255, 202, 85, 0.68),
+        inset 0 0 48px rgba(255, 199, 76, 0.20);
+    }
+
+    .nat1 .roll-value {
+      color: #ffd5da;
+      text-shadow:
+        0 0 8px #fff,
+        0 0 24px var(--danger),
+        0 0 56px rgba(255, 83, 100, 0.74);
+    }
+
+    .nat1 .ring {
+      border-color: rgba(255, 83, 100, 0.72);
+      box-shadow:
+        0 0 34px rgba(255, 83, 100, 0.46),
+        inset 0 0 42px rgba(255, 83, 100, 0.16);
+    }
+
+    .debug-panel {
+      display: none;
+      position: fixed;
+      left: 20px;
+      bottom: 20px;
+      z-index: 20;
+      width: min(380px, calc(100vw - 40px));
+      padding: 16px;
+      border: 1px solid rgba(210, 130, 255, 0.45);
+      border-radius: 18px;
+      background: rgba(7, 3, 12, 0.91);
+      box-shadow: 0 0 30px rgba(139, 33, 205, 0.25);
+    }
+
+    .debug-panel.visible { display: grid; gap: 10px; }
+
+    .debug-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 8px;
+    }
+
+    .debug-panel input,
+    .debug-panel button {
+      min-height: 42px;
+      border-radius: 10px;
+      border: 1px solid rgba(203, 107, 255, 0.38);
+      background: #160923;
+      color: white;
+      padding: 0 13px;
+      font: inherit;
+    }
+
+    .debug-panel button { cursor: pointer; }
+    .debug-panel button:hover { border-color: var(--cyan); }
+
+    @keyframes slowTurn {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes sigilSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes sigilSpinReverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(1); opacity: 0.83; }
+      50% { transform: scale(1.025); opacity: 1; }
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.52; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes natTwenty {
+      0% { transform: translateX(-0.035em) scale(0.78); opacity: 0; }
+      55% { transform: translateX(-0.035em) scale(1.10); opacity: 1; }
+      100% { transform: translateX(-0.035em) scale(1); }
+    }
+
+    /* Portrait phones/tablets */
+    @media (max-width: 700px) {
+      :root { --corner: 24px; }
+
+      .frame {
+        inset: 12px;
+        border-radius: 24px;
+      }
+
+      .frame::before {
+        inset: 8px;
+        border-radius: 18px;
+      }
+
+      .frame::after {
+        display: none;
+      }
+
+      .corner {
+        width: 90px;
+        height: 90px;
+      }
+
+      .display {
+        width: min(92vw, 760px);
+        height: min(84dvh, 760px);
+        border-radius: 30px;
+        padding: 22px 18px 26px;
+      }
+
+      .display::before {
+        inset: 8px;
+        border-radius: 23px;
+      }
+
+      .eyebrow {
+        font-size: clamp(11px, 3.2vw, 16px);
+        letter-spacing: 0.24em;
+        text-align: center;
+      }
+
+      .result-stage {
+        width: min(72vw, 390px);
+        max-height: 48dvh;
+      }
+
+      .status-title {
+        font-size: clamp(15px, 4.2vw, 22px);
+        letter-spacing: 0.20em;
+      }
+
+      .status-subtitle {
+        font-size: clamp(12px, 3.3vw, 16px);
+        padding: 0 10px;
+      }
+
+      .brand {
+        bottom: max(20px, env(safe-area-inset-bottom));
+        font-size: 10px;
+        letter-spacing: 0.25em;
+      }
+
+      #firebaseConnection {
+        top: max(20px, env(safe-area-inset-top)) !important;
+        right: max(20px, env(safe-area-inset-right)) !important;
+        font-size: 9px !important;
+        padding: 6px 9px !important;
+      }
+    }
+
+    /* Short laptop displays / landscape phones */
+    @media (max-height: 650px) {
+      .display {
+        height: 88dvh;
+        width: min(1040px, 84vw);
+        padding-top: 16px;
+        padding-bottom: 16px;
+      }
+
+      .result-stage {
+        width: clamp(180px, 42vmin, 370px);
+        max-height: 56dvh;
+      }
+
+      .eyebrow {
+        font-size: clamp(11px, 1.5vw, 18px);
+      }
+
+      .status {
+        gap: 5px;
+      }
+
+      .status-title {
+        font-size: clamp(14px, 1.8vw, 22px);
+      }
+
+      .status-subtitle {
+        font-size: clamp(11px, 1.2vw, 15px);
+      }
+
+      .brand {
+        display: none;
+      }
+    }
+
+    /* Keep the core sigil animation running even if the OS requests reduced motion.
+       Other ambient animations are softened instead. */
+    @media (prefers-reduced-motion: reduce) {
+      body::before,
+      .ring {
+        animation: none !important;
+      }
+
+      .sigil {
+        animation: sigilSpin 18s linear infinite !important;
+      }
+
+      .sigil-inner {
+        animation: sigilSpinReverse 11s linear infinite !important;
+      }
+    }
+  
+    /* ---------- BABY roll trigger controls ---------- */
+    .result-stage {
+      touch-action: none;
+    }
+
+    .result-stage.trace-mode {
+      cursor: crosshair;
+    }
+
+    .result-stage.click-mode {
+      cursor: pointer;
+    }
+
+    .result-stage.click-mode:hover .ring {
+      border-color: rgba(218, 148, 255, 0.88);
+      box-shadow:
+        0 0 40px rgba(179, 44, 255, 0.74),
+        inset 0 0 38px rgba(144, 51, 196, 0.26);
+    }
+
+    .trace-track,
+    .trace-progress {
+      position: absolute;
+      inset: -2.4%;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .trace-track {
+      opacity: 0;
+      border: 2px dashed rgba(217, 147, 255, 0.22);
+      transition: opacity 180ms ease;
+    }
+
+    .trace-mode:hover .trace-track,
+    .trace-mode.tracing .trace-track {
+      opacity: 1;
+    }
+
+    .trace-progress {
+      --trace-angle: 0deg;
+      opacity: 0;
+      background:
+        conic-gradient(
+          from -90deg,
+          rgba(111, 234, 255, 0.98) 0deg,
+          rgba(201, 103, 255, 0.98) var(--trace-angle),
+          transparent var(--trace-angle),
+          transparent 360deg
+        );
+      -webkit-mask: radial-gradient(
+        circle,
+        transparent 0 91%,
+        #000 91.4% 94%,
+        transparent 94.4%
+      );
+      mask: radial-gradient(
+        circle,
+        transparent 0 91%,
+        #000 91.4% 94%,
+        transparent 94.4%
+      );
+      filter: drop-shadow(0 0 8px rgba(111, 234, 255, 0.72));
+      transition: opacity 150ms ease;
+    }
+
+    .tracing .trace-progress,
+    .trace-complete .trace-progress {
+      opacity: 1;
+    }
+
+    .trace-complete .trace-progress {
+      animation: traceFlash 520ms ease-out;
+    }
+
+    .trigger-pulse {
+      position: absolute;
+      inset: 16%;
+      border-radius: 50%;
+      border: 2px solid rgba(111, 234, 255, 0);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .triggered .trigger-pulse {
+      animation: triggerPulse 720ms ease-out;
+    }
+
+    .mode-control {
+      position: fixed;
+      left: max(22px, env(safe-area-inset-left));
+      bottom: max(22px, env(safe-area-inset-bottom));
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border: 1px solid rgba(201, 103, 255, 0.30);
+      border-radius: 999px;
+      background: rgba(10, 4, 18, 0.70);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 22px rgba(104, 20, 155, 0.16);
+      color: rgba(248, 243, 255, 0.88);
+      user-select: none;
+    }
+
+    .mode-copy {
+      display: grid;
+      gap: 1px;
+      line-height: 1.05;
+    }
+
+    .mode-title {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .mode-name {
+      font-size: 11px;
+      color: rgba(217, 147, 255, 0.88);
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .mode-switch {
+      position: relative;
+      width: 42px;
+      height: 23px;
+      flex: 0 0 auto;
+    }
+
+    .mode-switch input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+    }
+
+    .mode-slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(217, 147, 255, 0.44);
+      background: rgba(69, 25, 92, 0.60);
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .mode-slider::after {
+      content: "";
+      position: absolute;
+      width: 17px;
+      height: 17px;
+      left: 2px;
+      top: 2px;
+      border-radius: 50%;
+      background: #d993ff;
+      box-shadow: 0 0 10px rgba(179, 44, 255, 0.62);
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .mode-switch input:checked + .mode-slider {
+      border-color: rgba(111, 234, 255, 0.55);
+      background: rgba(22, 77, 91, 0.58);
+    }
+
+    .mode-switch input:checked + .mode-slider::after {
+      transform: translateX(19px);
+      background: #6feaff;
+      box-shadow: 0 0 10px rgba(111, 234, 255, 0.64);
+    }
+
+    .mode-switch input:focus-visible + .mode-slider {
+      outline: 2px solid #ffffff;
+      outline-offset: 3px;
+    }
+
+    .interaction-hint {
+      position: absolute;
+      left: 50%;
+      bottom: -35px;
+      transform: translateX(-50%);
+      z-index: 8;
+      width: max-content;
+      max-width: 82vw;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: rgba(221, 206, 233, 0.72);
+      background: rgba(10, 4, 18, 0.40);
+      font-size: clamp(10px, 0.78vw, 13px);
+      letter-spacing: 0.08em;
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+    }
+
+    @keyframes traceFlash {
+      0% { opacity: 1; filter: drop-shadow(0 0 8px rgba(111, 234, 255, 0.72)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 22px rgba(255, 215, 125, 0.95)); }
+      100% { opacity: 0; }
+    }
+
+    @keyframes triggerPulse {
+      0% {
+        opacity: 0.95;
+        transform: scale(0.86);
+        border-color: rgba(111, 234, 255, 0.86);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.55);
+        border-color: rgba(201, 103, 255, 0);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .mode-control {
+        left: max(14px, env(safe-area-inset-left));
+        bottom: max(14px, env(safe-area-inset-bottom));
+        padding: 8px 10px;
+      }
+
+      .mode-title {
+        font-size: 8px;
+      }
+
+      .mode-name {
+        font-size: 9px;
+      }
+
+      .interaction-hint {
+        bottom: -30px;
+        font-size: 9px;
+      }
+    }
+
+    @media (max-height: 650px) {
+      .mode-control {
+        bottom: 12px;
+        left: 12px;
+        transform: scale(0.90);
+        transform-origin: left bottom;
+      }
+
+      .interaction-hint {
+        display: none;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <canvas id="motes" aria-hidden="true"></canvas>
+
+  <div class="frame" aria-hidden="true"></div>
+
+  <svg class="corner tl" viewBox="0 0 160 160" aria-hidden="true">
+    <path d="M10 145 V62 Q10 10 62 10 H145" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <path d="M24 145 V72 Q24 24 72 24 H145" fill="none" stroke="#73eaff" stroke-opacity=".35"/>
+    <path d="M10 79 L42 47 L58 63 L91 30" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <circle cx="43" cy="47" r="5" fill="#c967ff"/>
+    <circle cx="91" cy="30" r="4" fill="#73eaff"/>
+  </svg>
+  <svg class="corner tr" viewBox="0 0 160 160" aria-hidden="true">
+    <path d="M10 145 V62 Q10 10 62 10 H145" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <path d="M24 145 V72 Q24 24 72 24 H145" fill="none" stroke="#73eaff" stroke-opacity=".35"/>
+    <path d="M10 79 L42 47 L58 63 L91 30" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <circle cx="43" cy="47" r="5" fill="#c967ff"/>
+    <circle cx="91" cy="30" r="4" fill="#73eaff"/>
+  </svg>
+  <svg class="corner bl" viewBox="0 0 160 160" aria-hidden="true">
+    <path d="M10 145 V62 Q10 10 62 10 H145" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <path d="M24 145 V72 Q24 24 72 24 H145" fill="none" stroke="#73eaff" stroke-opacity=".35"/>
+    <path d="M10 79 L42 47 L58 63 L91 30" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <circle cx="43" cy="47" r="5" fill="#c967ff"/>
+    <circle cx="91" cy="30" r="4" fill="#73eaff"/>
+  </svg>
+  <svg class="corner br" viewBox="0 0 160 160" aria-hidden="true">
+    <path d="M10 145 V62 Q10 10 62 10 H145" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <path d="M24 145 V72 Q24 24 72 24 H145" fill="none" stroke="#73eaff" stroke-opacity=".35"/>
+    <path d="M10 79 L42 47 L58 63 L91 30" fill="none" stroke="#c967ff" stroke-width="2"/>
+    <circle cx="43" cy="47" r="5" fill="#c967ff"/>
+    <circle cx="91" cy="30" r="4" fill="#73eaff"/>
+  </svg>
+
+  <main class="layout">
+    <section class="display" id="display" aria-live="polite">
+      <p class="eyebrow">Arcane Roll Recognition</p>
+
+      <div class="result-stage trace-mode" id="resultStage" aria-label="Roll trigger">
+        <div class="ring"></div>
+        <div class="trace-track" aria-hidden="true"></div>
+        <div class="trace-progress" id="traceProgress" aria-hidden="true"></div>
+        <div class="trigger-pulse" aria-hidden="true"></div>
+
+        <svg class="sigil" viewBox="0 0 500 500" aria-hidden="true">
+          <circle cx="250" cy="250" r="222" fill="none" stroke="#c76bff" stroke-width="3"/>
+          <circle cx="250" cy="250" r="180" fill="none" stroke="#6feaff" stroke-opacity=".7" stroke-width="2"/>
+          <polygon points="250,56 418,347 82,347" fill="none" stroke="#c76bff" stroke-width="3"/>
+          <polygon points="250,444 82,153 418,153" fill="none" stroke="#6feaff" stroke-opacity=".65" stroke-width="2"/>
+          <polygon points="250,115 378,208 329,359 171,359 122,208" fill="none" stroke="#c76bff" stroke-width="3"/>
+          <circle cx="250" cy="250" r="72" fill="none" stroke="#6feaff" stroke-opacity=".8" stroke-width="2"/>
+          <path d="M250 178 L305 218 L284 283 L216 283 L195 218 Z" fill="none" stroke="#c76bff" stroke-width="3"/>
+        </svg>
+
+        <svg class="sigil-inner" viewBox="0 0 500 500" aria-hidden="true">
+          <circle cx="250" cy="250" r="206" fill="none" stroke="#6feaff" stroke-opacity=".65" stroke-width="3"/>
+          <polygon points="250,78 399,336 101,336" fill="none" stroke="#6feaff" stroke-opacity=".72" stroke-width="3"/>
+          <polygon points="250,422 101,164 399,164" fill="none" stroke="#c76bff" stroke-opacity=".72" stroke-width="3"/>
+          <circle cx="250" cy="250" r="92" fill="none" stroke="#c76bff" stroke-opacity=".75" stroke-width="3"/>
+          <path d="M250 158 L337 221 L304 323 L196 323 L163 221 Z" fill="none" stroke="#6feaff" stroke-opacity=".72" stroke-width="3"/>
+        </svg>
+
+        <div class="roll-value rolling" id="rollValue">READY</div>
+        <div class="interaction-hint" id="interactionHint">Hold and trace around the outer ring to analyse</div>
+      </div>
+
+      <div class="status">
+        <p class="status-title" id="statusTitle">Awaiting Roll</p>
+        <p class="status-subtitle" id="statusSubtitle">Place the die and begin when ready</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="brand">Tactile Gaming System</div>
+
+  <div class="mode-control" aria-label="Roll trigger mode">
+    <div class="mode-copy">
+      <span class="mode-title">Trigger Mode</span>
+      <span class="mode-name" id="modeName">Arcane Trace</span>
+    </div>
+
+    <label class="mode-switch" title="Switch between trace mode and accessible click mode">
+      <input type="checkbox" id="modeToggle" aria-label="Use simple click mode" />
+      <span class="mode-slider" aria-hidden="true"></span>
+    </label>
+  </div>
+
+
+  <section class="debug-panel" id="debugPanel">
+    <strong>Overlay test controls</strong>
+    <div class="debug-row">
+      <input id="rollInput" type="number" min="1" max="20" value="20" aria-label="Roll value" />
+      <button id="setButton">Show</button>
+      <button id="rollButton">Rolling</button>
+      <button id="fullButton">Fullscreen</button>
+    </div>
+    <small>Open with <code>?debug=1</code> to show this panel. Keyboard: R = rolling, F = fullscreen.</small>
+  </section>
+
+  <script>
+    (() => {
+      const display = document.getElementById("display");
+      const rollValue = document.getElementById("rollValue");
+      const statusTitle = document.getElementById("statusTitle");
+      const statusSubtitle = document.getElementById("statusSubtitle");
+
+      function resetClasses() {
+        display.classList.remove("nat20", "nat1");
+        rollValue.classList.remove("rolling", "error", "two-digit");
+      }
+
+      window.setRoll = function setRoll(value) {
+        const roll = Number(value);
+        if (!Number.isInteger(roll) || roll < 1 || roll > 20) {
+          window.showError("Invalid roll");
+          return;
+        }
+
+        resetClasses();
+        rollValue.textContent = String(roll);
+        if (roll >= 10) rollValue.classList.add("two-digit");
+
+        if (roll === 20) {
+          display.classList.add("nat20");
+          statusTitle.textContent = "Natural Twenty";
+          statusSubtitle.textContent = "Critical success";
+        } else if (roll === 1) {
+          display.classList.add("nat1");
+          statusTitle.textContent = "Natural One";
+          statusSubtitle.textContent = "Critical failure";
+        } else {
+          statusTitle.textContent = "D20 Result";
+          statusSubtitle.textContent = "Physical roll successfully recognised";
+        }
+      };
+
+      window.showRolling = function showRolling() {
+        resetClasses();
+        rollValue.classList.add("rolling");
+        rollValue.textContent = "ROLLING";
+        statusTitle.textContent = "Reading the Die";
+        statusSubtitle.textContent = "Analysing the final face";
+      };
+
+      window.showReady = function showReady() {
+        resetClasses();
+        rollValue.classList.add("rolling");
+        rollValue.textContent = "READY";
+        statusTitle.textContent = "Awaiting Roll";
+        statusSubtitle.textContent = "Place the die and begin when ready";
+      };
+
+      window.showError = function showError(message = "Roll not recognised") {
+        resetClasses();
+        rollValue.classList.add("error");
+        rollValue.textContent = message;
+        statusTitle.textContent = "Recognition Error";
+        statusSubtitle.textContent = "Please reposition the die and try again";
+      };
+
+      const params = new URLSearchParams(location.search);
+      const initialRoll = params.get("roll");
+      if (initialRoll) window.setRoll(initialRoll);
+
+      const debugPanel = document.getElementById("debugPanel");
+      if (params.get("debug") === "1") {
+        debugPanel.classList.add("visible");
+      }
+
+      document.getElementById("setButton").addEventListener("click", () => {
+        window.setRoll(document.getElementById("rollInput").value);
+      });
+      document.getElementById("rollButton").addEventListener("click", window.showRolling);
+      document.getElementById("fullButton").addEventListener("click", () => {
+        document.documentElement.requestFullscreen?.();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key.toLowerCase() === "r" || event.code === "Space") {
+          window.showRolling();
+        }
+        if (event.key.toLowerCase() === "f") {
+          document.documentElement.requestFullscreen?.();
+        }
+      });
+
+      // Subtle arcane motes background.
+      const canvas = document.getElementById("motes");
+      const ctx = canvas.getContext("2d");
+      let motes = [];
+
+      function resize() {
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = innerWidth * dpr;
+        canvas.height = innerHeight * dpr;
+        canvas.style.width = innerWidth + "px";
+        canvas.style.height = innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        motes = Array.from({ length: Math.max(34, Math.floor(innerWidth / 38)) }, () => ({
+          x: Math.random() * innerWidth,
+          y: Math.random() * innerHeight,
+          r: 0.7 + Math.random() * 2.1,
+          vx: (Math.random() - 0.5) * 0.12,
+          vy: -0.08 - Math.random() * 0.16,
+          a: 0.10 + Math.random() * 0.40,
+          hue: Math.random() > 0.72 ? 188 : 280
+        }));
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        for (const mote of motes) {
+          mote.x += mote.vx;
+          mote.y += mote.vy;
+          if (mote.y < -10) mote.y = innerHeight + 10;
+          if (mote.x < -10) mote.x = innerWidth + 10;
+          if (mote.x > innerWidth + 10) mote.x = -10;
+
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${mote.hue}, 95%, 72%, ${mote.a})`;
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = `hsla(${mote.hue}, 95%, 65%, .45)`;
+          ctx.arc(mote.x, mote.y, mote.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+
+      addEventListener("resize", resize);
+      resize();
+      draw();
+    })();
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      runTransaction
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVW2IGf6qwaPJEycLC5mSUdrcFq3JrEBY",
+      authDomain: "baby-dice-system.firebaseapp.com",
+      databaseURL: "https://baby-dice-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "baby-dice-system",
+      storageBucket: "baby-dice-system.firebasestorage.app",
+      messagingSenderId: "702855979067",
+      appId: "1:702855979067:web:a81af2293bc8e88cda3c1e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const rollRef = ref(database, "roll");
+    const captureRequestRef = ref(database, "captureRequest");
+
+    const resultStage = document.getElementById("resultStage");
+    const traceProgress = document.getElementById("traceProgress");
+    const modeToggle = document.getElementById("modeToggle");
+    const modeName = document.getElementById("modeName");
+    const interactionHint = document.getElementById("interactionHint");
+
+    const connectionBadge = document.createElement("div");
+    connectionBadge.id = "firebaseConnection";
+    connectionBadge.textContent = "CONNECTING";
+    Object.assign(connectionBadge.style, {
+      position: "fixed",
+      top: "4.3vh",
+      right: "5vw",
+      zIndex: "30",
+      padding: "8px 13px",
+      borderRadius: "999px",
+      fontSize: "12px",
+      fontWeight: "800",
+      letterSpacing: ".16em",
+      color: "rgba(248,243,255,.86)",
+      background: "rgba(15,5,28,.62)",
+      border: "1px solid rgba(201,103,255,.28)",
+      backdropFilter: "blur(8px)",
+      opacity: ".75"
+    });
+    document.body.appendChild(connectionBadge);
+
+    let firstSnapshot = true;
+    let pendingTimer = null;
+    let requestLocked = false;
+
+    // TRACE MODE IS THE DEFAULT.
+    let interactionMode = "trace";
+
+    function setInteractionMode(mode) {
+      interactionMode = mode;
+
+      const clickMode = mode === "click";
+      resultStage.tabIndex = clickMode ? 0 : -1;
+      modeToggle.checked = clickMode;
+
+      resultStage.classList.toggle("trace-mode", !clickMode);
+      resultStage.classList.toggle("click-mode", clickMode);
+
+      modeName.textContent = clickMode ? "Simple Click" : "Arcane Trace";
+      interactionHint.textContent = clickMode
+        ? "Click or tap the sigil to analyse"
+        : "Hold and trace around the outer ring to analyse";
+
+      resetTrace();
+    }
+
+    async function requestCapture() {
+      if (requestLocked) return;
+
+      requestLocked = true;
+      resultStage.classList.add("triggered");
+      window.showRolling();
+
+      // Each completed gesture increments a unique request number.
+      // The Raspberry Pi will watch this value later.
+      try {
+        await runTransaction(captureRequestRef, (currentValue) => {
+          const current = Number(currentValue) || 0;
+          return current + 1;
+        });
+
+        const statusTitle = document.getElementById("statusTitle");
+        const statusSubtitle = document.getElementById("statusSubtitle");
+        statusTitle.textContent = "Arcane Request Sent";
+        statusSubtitle.textContent = "Waiting for BABY to analyse the die";
+      } catch (error) {
+        console.error("Could not send capture request:", error);
+        window.showError("Could not request roll");
+      } finally {
+        setTimeout(() => {
+          requestLocked = false;
+          resultStage.classList.remove("triggered");
+        }, 900);
+      }
+    }
+
+    // ---------- Arcane trace gesture ----------
+    let tracing = false;
+    let activePointerId = null;
+    let lastAngle = null;
+    let accumulatedAngle = 0;
+
+    const REQUIRED_TRACE_DEGREES = 300;
+    const MIN_RADIUS_RATIO = 0.70;
+    const MAX_RADIUS_RATIO = 1.15;
+
+    function resetTrace() {
+      tracing = false;
+      activePointerId = null;
+      lastAngle = null;
+      accumulatedAngle = 0;
+      resultStage.classList.remove("tracing", "trace-complete");
+      traceProgress.style.setProperty("--trace-angle", "0deg");
+    }
+
+    function pointerGeometry(event) {
+      const rect = resultStage.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      const dx = event.clientX - cx;
+      const dy = event.clientY - cy;
+      const distance = Math.hypot(dx, dy);
+      const radius = Math.min(rect.width, rect.height) / 2;
+
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      if (angle < 0) angle += 360;
+
+      return {
+        angle,
+        radiusRatio: distance / radius
+      };
+    }
+
+    function isOnTraceBand(radiusRatio) {
+      return radiusRatio >= MIN_RADIUS_RATIO && radiusRatio <= MAX_RADIUS_RATIO;
+    }
+
+    resultStage.addEventListener("pointerdown", (event) => {
+      if (interactionMode !== "trace" || requestLocked) return;
+
+      const point = pointerGeometry(event);
+      if (!isOnTraceBand(point.radiusRatio)) return;
+
+      tracing = true;
+      activePointerId = event.pointerId;
+      lastAngle = point.angle;
+      accumulatedAngle = 0;
+
+      resultStage.setPointerCapture?.(event.pointerId);
+      resultStage.classList.add("tracing");
+      traceProgress.style.setProperty("--trace-angle", "0deg");
+
+      event.preventDefault();
+    });
+
+    resultStage.addEventListener("pointermove", (event) => {
+      if (
+        interactionMode !== "trace" ||
+        !tracing ||
+        event.pointerId !== activePointerId
+      ) {
+        return;
+      }
+
+      const point = pointerGeometry(event);
+
+      // If the pointer strays far away, do not count that segment.
+      if (!isOnTraceBand(point.radiusRatio)) {
+        lastAngle = point.angle;
+        return;
+      }
+
+      if (lastAngle !== null) {
+        let delta = point.angle - lastAngle;
+
+        // Wrap the delta so crossing 0°/360° remains smooth.
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+
+        // Ignore large jumps caused by teleporting the pointer.
+        if (Math.abs(delta) <= 32) {
+          accumulatedAngle += Math.abs(delta);
+        }
+      }
+
+      lastAngle = point.angle;
+
+      const progress = Math.min(accumulatedAngle / REQUIRED_TRACE_DEGREES, 1);
+      traceProgress.style.setProperty(
+        "--trace-angle",
+        `${Math.round(progress * 360)}deg`
+      );
+
+      if (progress >= 1) {
+        tracing = false;
+        resultStage.releasePointerCapture?.(event.pointerId);
+        resultStage.classList.remove("tracing");
+        resultStage.classList.add("trace-complete");
+
+        requestCapture();
+
+        setTimeout(() => {
+          resultStage.classList.remove("trace-complete");
+          resetTrace();
+        }, 650);
+      }
+
+      event.preventDefault();
+    });
+
+    function cancelTrace(event) {
+      if (event.pointerId === activePointerId) {
+        resetTrace();
+      }
+    }
+
+    resultStage.addEventListener("pointerup", cancelTrace);
+    resultStage.addEventListener("pointercancel", cancelTrace);
+
+    // ---------- Simple accessibility click mode ----------
+    resultStage.addEventListener("click", (event) => {
+      if (interactionMode !== "click" || requestLocked) return;
+      requestCapture();
+    });
+
+    resultStage.addEventListener("keydown", (event) => {
+      if (
+        interactionMode === "click" &&
+        (event.key === "Enter" || event.key === " ")
+      ) {
+        event.preventDefault();
+        requestCapture();
+      }
+    });
+
+    modeToggle.addEventListener("change", () => {
+      setInteractionMode(modeToggle.checked ? "click" : "trace");
+    });
+
+    // ---------- Live roll listener ----------
+    onValue(
+      rollRef,
+      (snapshot) => {
+        connectionBadge.textContent = "LIVE";
+        connectionBadge.style.borderColor = "rgba(111,234,255,.42)";
+        connectionBadge.style.boxShadow = "0 0 18px rgba(111,234,255,.12)";
+
+        const value = Number(snapshot.val());
+
+        if (Number.isInteger(value) && value >= 1 && value <= 20) {
+          if (pendingTimer) clearTimeout(pendingTimer);
+
+          if (firstSnapshot) {
+            window.setRoll(value);
+          } else {
+            window.showRolling();
+            pendingTimer = setTimeout(() => window.setRoll(value), 550);
+          }
+        } else {
+          window.showError("No valid roll");
+        }
+
+        firstSnapshot = false;
+      },
+      (error) => {
+        console.error("Firebase Realtime Database error:", error);
+        connectionBadge.textContent = "OFFLINE";
+        connectionBadge.style.borderColor = "rgba(255,83,100,.55)";
+        window.showError("Database connection lost");
+      }
+    );
+
+    // Start in the more theatrical trace mode every time.
+    setInteractionMode("trace");
+  </script>
+
+</body>
+</html>
